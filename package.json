@@ -1,0 +1,16 @@
+{
+  "name": "book_my_show",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev":"bun run ./src/*",
+    "build":"bun build ./src/*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^7"
+  }
+}
