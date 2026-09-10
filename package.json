@@ -4,13 +4,19 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev":"bun run ./src/*",
-    "build":"bun build ./src/*"
+    "dev": "bun run ./src/index",
+    "build": "bun build ./src/*"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.2"
   },
   "peerDependencies": {
     "typescript": "^7"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
   }
 }
