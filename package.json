@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "bun run ./src/index",
-    "build": "bun build ./src/*"
+    "build": "bun build ./src/* --outdir ./dist"
   },
   "devDependencies": {
     "@types/bun": "latest",

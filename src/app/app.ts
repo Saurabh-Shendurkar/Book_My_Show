@@ -1,4 +1,5 @@
 import express from "express";
+import { errorHandler } from "./common/middleware/error.middleware";
 
 export function createApp(){
     const app = express()
@@ -7,6 +8,7 @@ export function createApp(){
 
     //routes
 
-
+    //error-handling route at at 
+    app.use(errorHandler)
     return app
 }

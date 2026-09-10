@@ -9,7 +9,7 @@ const PORT=process.env.PORT||5000
 const start = async ()=>{
     const server=createServer(createApp())
     server.listen(PORT,()=>{
-        console.log(`server started on ${PORT}`);
+        console.log(`server started on ${PORT} in ${process.env.NODE_ENV}`);
     })
     await CheckDBConnection()
 }
