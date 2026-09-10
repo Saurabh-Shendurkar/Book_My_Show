@@ -5,7 +5,10 @@
   "private": true,
   "scripts": {
     "dev": "bun run ./src/index",
-    "build": "bun build ./src/* --outdir ./dist"
+    "build": "bun build ./src/* --outdir ./dist",
+    "db:generate":"bunx drizzle-kit generate",
+    "db:migrate":" bunx drizzle-kit migrate",
+    "studio":" bunx drizzle-kit studio"
   },
   "devDependencies": {
     "@types/bun": "latest",
