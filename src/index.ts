@@ -1,7 +1,8 @@
 import "dotenv/config"
 import { createServer } from "node:http"
 import { createApp } from "./app/app"
-import connectDB from "./app/common/config/db"
+import { CheckDBConnection } from "./app/common/config/db"
+
 
 const PORT=process.env.PORT||5000
 
@@ -10,8 +11,7 @@ const start = async ()=>{
     server.listen(PORT,()=>{
         console.log(`server started on ${PORT}`);
     })
-
-    await connectDB()
+    await CheckDBConnection()
 }
 
 start().catch(err=>{
