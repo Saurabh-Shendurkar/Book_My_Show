@@ -14,7 +14,7 @@ export const errorHandler=(
             statusCode=500,
             message="something went wrong on the server."
 
-            console.error("CRITICAL ERROR",err)
+            console.error("CRITICAL ERROR: ",err)
     }
 
     res.status(statusCode).json({

@@ -8,7 +8,10 @@ export const usersTable= pgTable("users",{
     phoneNo:varchar("phone_no",{length:15}).unique(),
     isEmailverified:boolean("is_email_verified").default(false),
     password:varchar("password",{length:65}),
-    salt:text("salt"),
+    verificationToken:text("verification_token"),
+    accessToken:text("access_token"),
+    refreshToken:text("refresh_token"),
+    resetPasswordToken:text("reset_password_token"),
     createdAt:timestamp("created_at").defaultNow().notNull(),
-    updatedAt:timestamp("updated_At").$onUpdateFn(()=>new Date())
+    updatedAt:timestamp("updated_at").$onUpdateFn(()=>new Date())
 })

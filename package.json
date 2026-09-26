@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "bun run ./src/index",
     "build": "bun build ./src/* --outdir ./dist",
-    "db:generate":"bunx drizzle-kit generate",
-    "db:migrate":" bunx drizzle-kit migrate",
-    "studio":" bunx drizzle-kit studio"
+    "db:generate": "bunx drizzle-kit generate",
+    "db:migrate": " bunx drizzle-kit migrate",
+    "studio": " bunx drizzle-kit studio"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -25,6 +25,7 @@
     "dotenv": "^17.4.2",
     "drizzle-orm": "^1.0.0-rc.4",
     "express": "^5.2.1",
-    "pg": "^8.23.0"
+    "pg": "^8.23.0",
+    "zod": "^4.6.5"
   }
 }
