@@ -25,4 +25,8 @@ export class ApiError extends Error {
     static notFound(message:string="Not Found"):ApiError{
         return new ApiError(404,message)
     }
+
+    static serverFailure(message:string="Encountered some issue on the server side "):ApiError{
+        return new ApiError(500,message)
+    }
 }
