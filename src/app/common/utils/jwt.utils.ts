@@ -1,5 +1,6 @@
 import "dotenv/config";
 import * as jwt from "jsonwebtoken";
+import crypto from "crypto"
 
 interface userPayload {
   id: string;
@@ -32,3 +33,11 @@ const createRefreshToken = (
 const verifyRefreshToken= (token:string)=>{
     return jwt.verify(token,process.env.JWT_REFRESH_TOKEN!)
 }
+
+const generateToken= ()=>{
+  const rawToken= crypto.randomBytes(32).toString("hex")
+  const hashedToken= crypto.createHash('sha256').update(rawToken).digest('hex')
+  return {rawToken, hashedToken}
+}
+
+export {generateToken, createAccessToken, createRefreshToken, verifyAccessToken, verifyRefreshToken}
