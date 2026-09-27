@@ -27,7 +27,7 @@ const createRefreshToken = (
       "7d") as jwt.SignOptions["expiresIn"],
   },
 ): string => {
-  return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET!);
+  return jwt.sign(payload, process.env.JWT_REFRESH_SECRET!);
 };
 
 const verifyRefreshToken= (token:string)=>{
