@@ -1,10 +1,15 @@
 import { db } from "../../common/config/db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import type { signUpRequest } from "./dto/signUp.dto";
 import { usersTable } from "./auth.schema";
 import { ApiError } from "../../common/utils/api.error";
-import { generateToken } from "../../common/utils/jwt.utils";
+import {
+  createAccessToken,
+  createRefreshToken,
+  generateToken,
+} from "../../common/utils/jwt.utils";
 import bcrypt from "bcrypt";
+import type { signInRequest } from "./dto/signIn.dto";
 
 const signUp = async (userData: signUpRequest) => {
   const { firstName, lastName, email, phoneNo, password } = userData;
@@ -36,4 +41,30 @@ const signUp = async (userData: signUpRequest) => {
   return user;
 };
 
-export { signUp };
+const signIn = async (userData: signInRequest) => {
+  const { email, password } = userData;
+
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, email))
+    .limit(1);
+  if (!user) throw ApiError.badRequest("Invalid Email or Password");
+  const isPasswordMatch = await bcrypt.compare(password, user.password!);
+  if (!isPasswordMatch) throw ApiError.badRequest("Invalid Email or Password");
+
+  if (!user.isEmailverified)
+    throw ApiError.unAuthorized("User is not verified");
+
+  const access_token = createAccessToken({ id: user.id });
+  const refresh_token = createRefreshToken({ id: user.id });
+  const userObj = {
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    phoneNo: user.phoneNo,
+  };
+  return { userObj, access_token, refresh_token };
+};
+
+export { signUp, signIn };
