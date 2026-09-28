@@ -1,5 +1,5 @@
 import { db } from "../../common/config/db";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { signUpRequest } from "./dto/signUp.dto";
 import { usersTable } from "./auth.schema";
 import { ApiError } from "../../common/utils/api.error";
@@ -54,11 +54,17 @@ const signIn = async (userData: signInRequest) => {
   const isPasswordMatch = await bcrypt.compare(password, user.password!);
   if (!isPasswordMatch) throw ApiError.badRequest("Invalid Email or Password");
 
-  // if (!user.isEmailverified)
-  //   throw ApiError.unAuthorized("User is not verified");
+  if (!user.isEmailverified)
+    throw ApiError.unAuthorized("User is not verified");
 
   const access_token = createAccessToken({ id: user.id });
   const refresh_token = createRefreshToken({ id: user.id });
+
+  await db
+    .update(usersTable)
+    .set({ refreshToken: refresh_token })
+    .where(eq(usersTable.id, user.id));
+
   const userObj = {
     firstName: user.firstName,
     lastName: user.lastName,
