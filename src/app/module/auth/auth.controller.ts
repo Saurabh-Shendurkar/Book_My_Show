@@ -28,4 +28,5 @@ const getMeHandler = async(req:Request, res:Response)=>{
   const user=await getMe(req.user)
   ApiResponse.ok(res,"Fetched user details successfully", user)
 }
+
 export { signUpHandler , signInHandler, getMeHandler};

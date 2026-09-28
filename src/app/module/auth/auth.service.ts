@@ -7,6 +7,7 @@ import {
   createAccessToken,
   createRefreshToken,
   generateToken,
+  type userPayload,
 } from "../../common/utils/jwt.utils";
 import bcrypt from "bcrypt";
 import type { signInRequest } from "./dto/signIn.dto";
@@ -53,8 +54,8 @@ const signIn = async (userData: signInRequest) => {
   const isPasswordMatch = await bcrypt.compare(password, user.password!);
   if (!isPasswordMatch) throw ApiError.badRequest("Invalid Email or Password");
 
-  if (!user.isEmailverified)
-    throw ApiError.unAuthorized("User is not verified");
+  // if (!user.isEmailverified)
+  //   throw ApiError.unAuthorized("User is not verified");
 
   const access_token = createAccessToken({ id: user.id });
   const refresh_token = createRefreshToken({ id: user.id });
@@ -67,4 +68,18 @@ const signIn = async (userData: signInRequest) => {
   return { userObj, access_token, refresh_token };
 };
 
-export { signUp, signIn };
+const getMe = async (userData: userPayload) => {
+  const [userSearchRes] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, userData.id));
+  if (!userSearchRes) throw ApiError.notFound("User Not Found");
+
+  return {
+    firstName: userSearchRes.firstName,
+    lastName: userSearchRes.lastName,
+    email: userSearchRes.email,
+    phoneNo: userSearchRes.phoneNo,
+  };
+};
+export { signUp, signIn, getMe };
