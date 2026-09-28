@@ -2,7 +2,7 @@ import "dotenv/config";
 import * as jwt from "jsonwebtoken";
 import crypto from "crypto"
 
-interface userPayload {
+export type userPayload= {
   id: string;
 }
 
@@ -17,7 +17,7 @@ const createAccessToken = (
 };
 
 const verifyAccessToken = (token: string) => {
-  return jwt.verify(token, process.env.JWT_ACCESS_TOKEN!);
+  return jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
 };
 
 const createRefreshToken = (

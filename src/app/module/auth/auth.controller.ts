@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { signIn, signUp } from "./auth.service";
+import { getMe, signIn, signUp } from "./auth.service";
 import { ApiError } from "../../common/utils/api.error";
 import { ApiResponse } from "../../common/utils/api.response";
 
@@ -23,4 +23,9 @@ const signInHandler = async (req: Request, res: Response) => {
   ApiResponse.ok(res, "User Signed Successfully", { userObj, access_token });
 };
 
-export { signUpHandler , signInHandler};
+const getMeHandler = async(req:Request, res:Response)=>{
+  //@ts-ignore
+  const user=await getMe(req.user)
+  ApiResponse.ok(res,"Fetched user details successfully", user)
+}
+export { signUpHandler , signInHandler, getMeHandler};

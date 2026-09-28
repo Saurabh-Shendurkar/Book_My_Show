@@ -22,6 +22,10 @@ export class ApiError extends Error {
         return new ApiError(401,message)
     }
 
+    static forbidden(message:string="Forbidden"):ApiError{
+        return new ApiError(403,message)
+    }
+    
     static notFound(message:string="Not Found"):ApiError{
         return new ApiError(404,message)
     }
