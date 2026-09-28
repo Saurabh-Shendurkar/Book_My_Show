@@ -1,10 +1,10 @@
 import "dotenv/config";
 import * as jwt from "jsonwebtoken";
-import crypto from "crypto"
+import crypto from "crypto";
 
-interface userPayload {
+export type userPayload = {
   id: string;
-}
+};
 
 const createAccessToken = (
   payload: userPayload,
@@ -17,7 +17,7 @@ const createAccessToken = (
 };
 
 const verifyAccessToken = (token: string) => {
-  return jwt.verify(token, process.env.JWT_ACCESS_TOKEN!);
+  return jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
 };
 
 const createRefreshToken = (
@@ -30,14 +30,23 @@ const createRefreshToken = (
   return jwt.sign(payload, process.env.JWT_REFRESH_SECRET!);
 };
 
-const verifyRefreshToken= (token:string)=>{
-    return jwt.verify(token,process.env.JWT_REFRESH_TOKEN!)
-}
+const verifyRefreshToken = (token: string) => {
+  return jwt.verify(token, process.env.JWT_REFRESH_TOKEN!);
+};
 
-const generateToken= ()=>{
-  const rawToken= crypto.randomBytes(32).toString("hex")
-  const hashedToken= crypto.createHash('sha256').update(rawToken).digest('hex')
-  return {rawToken, hashedToken}
-}
+const generateToken = () => {
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(rawToken)
+    .digest("hex");
+  return { rawToken, hashedToken };
+};
 
-export {generateToken, createAccessToken, createRefreshToken, verifyAccessToken, verifyRefreshToken}
+export {
+  generateToken,
+  createAccessToken,
+  createRefreshToken,
+  verifyAccessToken,
+  verifyRefreshToken,
+};
