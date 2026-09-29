@@ -88,4 +88,21 @@ const getMe = async (userData: userPayload) => {
     phoneNo: userSearchRes.phoneNo,
   };
 };
-export { signUp, signIn, getMe };
+
+const logout = async (userData: userPayload) => {
+  const [userSearchRes] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, userData.id));
+
+  if (!userSearchRes) throw ApiError.notFound("User Not Found");
+  //set refresh token in db to null
+  await db
+    .update(usersTable)
+    .set({ refreshToken: null })
+    .where(eq(usersTable.id, userData.id));
+
+  return { user: {}, accessToken: null};
+};
+
+export { signUp, signIn, getMe, logout };

@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { getMe, signIn, signUp } from "./auth.service";
+import { getMe, logout, signIn, signUp } from "./auth.service";
 import { ApiError } from "../../common/utils/api.error";
 import { ApiResponse } from "../../common/utils/api.response";
 
@@ -29,4 +29,10 @@ const getMeHandler = async(req:Request, res:Response)=>{
   ApiResponse.ok(res,"Fetched user details successfully", user)
 }
 
-export { signUpHandler , signInHandler, getMeHandler};
+const logoutHandler=async(req:Request,res:Response)=>{
+  //@ts-ignore
+  const {user,accessToken}=await logout(req.user)
+  res.clearCookie("refreshToken")
+  ApiResponse.ok(res,"Logged out Successfully",{user, accessToken})
+}
+export { signUpHandler , signInHandler, getMeHandler, logoutHandler};

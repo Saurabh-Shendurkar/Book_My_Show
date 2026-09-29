@@ -1,5 +1,5 @@
 import {Router} from 'express'
-import { getMeHandler, signInHandler, signUpHandler } from './auth.controller'
+import { getMeHandler, logoutHandler, signInHandler, signUpHandler } from './auth.controller'
 import { parseRequest } from '../../common/middleware/parse.middlware'
 import { signUpDto } from './dto/signUp.dto'
 import { signInDto } from './dto/signIn.dto'
@@ -10,5 +10,5 @@ const router= Router()
 router.post("/sign-up",parseRequest(signUpDto),signUpHandler)
 router.get("/sign-in",parseRequest(signInDto),signInHandler)
 router.post("/get-me",restrictUnAuthenticatedUser(),getMeHandler)
-
+router.post("/logout",restrictUnAuthenticatedUser(),logoutHandler)
 export default router
