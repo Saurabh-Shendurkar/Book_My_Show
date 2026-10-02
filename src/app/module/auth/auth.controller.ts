@@ -1,12 +1,13 @@
 import type { Request, Response } from "express";
-import { getMe, logout, signIn, signUp } from "./auth.service";
+import { getMe, logout, signIn, signUp, verifyEmail } from "./auth.service";
 import { ApiError } from "../../common/utils/api.error";
 import { ApiResponse } from "../../common/utils/api.response";
+import type { verifyEmailRequest } from "./dto/verifyEmail.dto";
 
 const signUpHandler = async (req: Request, res: Response) => {
   const user = await signUp(req.body);
   if (!user) throw ApiError.serverFailure("User Signup Failed");
-  ApiResponse.created(res, "User signed up successfully", user);
+  ApiResponse.created(res, "User signed up successfully, check email to verify user", user);
 };
 
 const signInHandler = async (req: Request, res: Response) => {
@@ -35,4 +36,10 @@ const logoutHandler=async(req:Request,res:Response)=>{
   res.clearCookie("refreshToken")
   ApiResponse.ok(res,"Logged out Successfully",{user, accessToken})
 }
-export { signUpHandler , signInHandler, getMeHandler, logoutHandler};
+
+const verficationHandler= async(req:Request<{},{},{},verifyEmailRequest>,res:Response)=>{
+  const user= await verifyEmail(req.query.token)
+  if(!user) throw ApiError.serverFailure("user verification failed")
+    ApiResponse.ok(res,"User Email is now verified",user)
+}
+export { signUpHandler , signInHandler, getMeHandler, logoutHandler, verficationHandler};

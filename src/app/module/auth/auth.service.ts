@@ -11,6 +11,12 @@ import {
 } from "../../common/utils/jwt.utils";
 import bcrypt from "bcrypt";
 import type { signInRequest } from "./dto/signIn.dto";
+import crypto from "crypto"
+import { sendEmail } from "../../common/utils/send.email";
+
+//email templates
+import React from "react";
+import VerifyUserEmail from "./emailTemplate/verifyUser";
 
 const signUp = async (userData: signUpRequest) => {
   const { firstName, lastName, email, phoneNo, password } = userData;
@@ -24,7 +30,17 @@ const signUp = async (userData: signUpRequest) => {
   const encryptedPassword = bcrypt.hashSync(password, 12);
 
   const { rawToken, hashedToken } = generateToken();
-  //send raw token to user via mail
+
+    // send raw token to user via mail
+  const sendMailResult=await sendEmail({
+    to: email,
+    subject: "Welcome! Please verify your email",
+    template: React.createElement(VerifyUserEmail, { 
+      firstName, 
+      verificationLink: `${process.env.DOMAIN || 'http://localhost:3000'}/api/auth/verify?token=${rawToken}` 
+    })
+  });
+  if(!sendMailResult.success) throw ApiError.serverFailure(String(sendMailResult.error))
 
   //insert user into db
   const [user] = await db
@@ -105,4 +121,18 @@ const logout = async (userData: userPayload) => {
   return { user: {}, accessToken: null};
 };
 
-export { signUp, signIn, getMe, logout };
+const verifyEmail= async(token:string)=>{
+  if(!token) throw ApiError.unAuthorized("Missing Token")
+  const hashedToken=crypto.createHash('sha256').update(token).digest('hex')
+  const [user]=await db.select().from(usersTable).where(eq(usersTable.verificationToken,hashedToken))
+  if(!user) throw ApiError.badRequest("Invalid verification token")
+  await db.update(usersTable).set({verificationToken:null,isEmailverified:true}).where(eq(usersTable.email,user.email))
+
+  return ({
+    firstName:user.firstName,
+    lastName:user.lastName,
+    email:user.email
+  })
+}
+
+export { signUp, signIn, getMe, logout, verifyEmail };

@@ -1,9 +1,9 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "164d1d77-b5ca-4a94-bf37-4fedd8c22ff6",
+  "id": "07310e79-40ac-49a5-b62f-5bef1f0b7797",
   "prevIds": [
-    "cef2794c-3e9d-495d-b4d1-7902897e8b49"
+    "00000000-0000-0000-0000-000000000000"
   ],
   "ddl": [
     {
@@ -111,7 +111,46 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "salt",
+      "name": "verification_token",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "access_token",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "refresh_token",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "reset_password_token",
       "entityType": "columns",
       "schema": "public",
       "table": "users"
@@ -175,7 +214,5 @@
       "entityType": "uniques"
     }
   ],
-  "renames": [
-    "public.users.updated_At->public.users.updated_at"
-  ]
+  "renames": []
 }
