@@ -6,7 +6,10 @@ CREATE TABLE "users" (
 	"phone_no" varchar(15) UNIQUE,
 	"is_email_verified" boolean DEFAULT false,
 	"password" varchar(65),
-	"salt" text,
+	"verification_token" text,
+	"access_token" text,
+	"refresh_token" text,
+	"reset_password_token" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_At" timestamp
+	"updated_at" timestamp
 );
