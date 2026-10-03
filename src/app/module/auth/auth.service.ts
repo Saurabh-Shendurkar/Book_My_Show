@@ -13,10 +13,14 @@ import bcrypt from "bcrypt";
 import type { signInRequest } from "./dto/signIn.dto";
 import crypto from "crypto"
 import { sendEmail } from "../../common/utils/send.email";
+import type { forgotPasswordRequest } from "./dto/forgotPassword.dto";
 
 //email templates
-import React from "react";
+import React, { use } from "react";
 import VerifyUserEmail from "./emailTemplate/verifyUser";
+import ResetPasswordEmail from "./emailTemplate/resetPassword";
+import type { resetPasswordRequest } from "./dto/resetPassword.dto";
+
 
 const signUp = async (userData: signUpRequest) => {
   const { firstName, lastName, email, phoneNo, password } = userData;
@@ -149,7 +153,42 @@ const verifyEmail= async(token:string)=>{
   })
 }
 
-const forgotPassword= async()=>{
+const forgotPassword= async(userData:forgotPasswordRequest)=>{
+  const email= userData.email
+  const [user]= await db.select().from(usersTable).where(eq(usersTable.email,email))
+  if(!user) throw ApiError.notFound("User Not Found")
+  const {rawToken,hashedToken,expiresAt}=generateToken(5)
 
+  const sendResetPasswordMailResult=await sendEmail({
+    to:email,
+    subject:'Reset Password Email',
+    template:React.createElement(ResetPasswordEmail,{
+      firstName:user.firstName,
+      resetLink:`${process.env.DOMAIN||'http://localhost:3000'}/api/auth/reset-password?token=${rawToken}`
+    })
+  })
+
+  if(!sendResetPasswordMailResult.success) throw ApiError.serverFailure(String(sendResetPasswordMailResult.error))
+  
+  const updatedUser=await db.update(usersTable).set({resetPasswordToken:hashedToken,resetPasswordTokenExpiresAt:expiresAt}).where(eq(usersTable.email,email))
+  if(!updatedUser) throw ApiError.serverFailure("Failed to process the request")
 }
-export { signUp, signIn, getMe, logout, verifyEmail };
+
+const resetPassword= async(userData:resetPasswordRequest)=>{
+  if(!userData.token)throw ApiError.badRequest("Missing token")
+  const hashedToken=crypto.createHash('sha256').update(userData.token).digest('hex')
+  const [user]= await db.select().from(usersTable).where(eq(usersTable.resetPasswordToken,hashedToken))
+  if(!user) throw ApiError.notFound("Invalid Reset Password Token")
+  if(user.resetPasswordTokenExpiresAt&& user.resetPasswordTokenExpiresAt<new Date()){
+    throw ApiError.badRequest("Reset Password Token expired")
+  }
+  const encryptedPassword = bcrypt.hashSync(userData.password, 12);
+  await db.update(usersTable).set({password:encryptedPassword,resetPasswordToken:null,resetPasswordTokenExpiresAt:null})
+
+  return{
+    firstName:user.firstName,
+    lastName:user.lastName,
+    email:user.email
+  }
+}
+export { signUp, signIn, getMe, logout, verifyEmail, forgotPassword, resetPassword };

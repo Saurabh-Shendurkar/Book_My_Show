@@ -1,6 +1,6 @@
 import {z} from "zod"
 
-const verifyEmailDto=z.object({
+export const verifyEmailDto=z.object({
     token:z.string()
 })
 

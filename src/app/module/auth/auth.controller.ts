@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { getMe, logout, signIn, signUp, verifyEmail } from "./auth.service";
+import { forgotPassword, getMe, logout, signIn, signUp, verifyEmail, resetPassword } from "./auth.service";
 import { ApiError } from "../../common/utils/api.error";
 import { ApiResponse } from "../../common/utils/api.response";
 import type { verifyEmailRequest } from "./dto/verifyEmail.dto";
@@ -42,4 +42,15 @@ const verficationHandler= async(req:Request<{},{},{},verifyEmailRequest>,res:Res
   if(!user) throw ApiError.serverFailure("user verification failed")
     ApiResponse.ok(res,"User Email is now verified",user)
 }
-export { signUpHandler , signInHandler, getMeHandler, logoutHandler, verficationHandler};
+
+const forgotPasswordHandler= async(req:Request, res:Response)=>{
+await forgotPassword(req.body)
+ApiResponse.ok(res,"Please check your email for password reset request")
+}
+
+const resetPasswordHandler = async (req: Request, res: Response) => {
+  const user = await resetPassword(req.body);
+  ApiResponse.ok(res, "Password reset successfully", user);
+};
+
+export { signUpHandler , signInHandler, getMeHandler, logoutHandler, verficationHandler, forgotPasswordHandler, resetPasswordHandler };
