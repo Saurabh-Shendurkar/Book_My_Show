@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "07310e79-40ac-49a5-b62f-5bef1f0b7797",
+  "id": "dd8128dc-2d99-4352-9e49-55a2640258f8",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -117,14 +117,14 @@
       "table": "users"
     },
     {
-      "type": "text",
+      "type": "timestamp",
       "typeSchema": null,
       "notNull": false,
       "dimensions": 0,
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "access_token",
+      "name": "verification_token_expires_at",
       "entityType": "columns",
       "schema": "public",
       "table": "users"
@@ -151,6 +151,19 @@
       "generated": null,
       "identity": null,
       "name": "reset_password_token",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "reset_password_token_expires_at",
       "entityType": "columns",
       "schema": "public",
       "table": "users"

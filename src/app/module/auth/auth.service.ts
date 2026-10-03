@@ -1,5 +1,5 @@
 import { db } from "../../common/config/db";
-import { eq } from "drizzle-orm";
+import { and, eq, lt } from "drizzle-orm";
 import type { signUpRequest } from "./dto/signUp.dto";
 import { usersTable } from "./auth.schema";
 import { ApiError } from "../../common/utils/api.error";
@@ -29,7 +29,7 @@ const signUp = async (userData: signUpRequest) => {
   //encrypt password
   const encryptedPassword = bcrypt.hashSync(password, 12);
 
-  const { rawToken, hashedToken } = generateToken();
+  const { rawToken, hashedToken, expiresAt } = generateToken();
 
     // send raw token to user via mail
   const sendMailResult=await sendEmail({
@@ -52,6 +52,7 @@ const signUp = async (userData: signUpRequest) => {
       phoneNo,
       password: encryptedPassword,
       verificationToken: hashedToken,
+      verificationTokenExpiresAt: expiresAt,
     })
     .returning({ id: usersTable.id });
 
@@ -123,10 +124,23 @@ const logout = async (userData: userPayload) => {
 
 const verifyEmail= async(token:string)=>{
   if(!token) throw ApiError.unAuthorized("Missing Token")
-  const hashedToken=crypto.createHash('sha256').update(token).digest('hex')
-  const [user]=await db.select().from(usersTable).where(eq(usersTable.verificationToken,hashedToken))
-  if(!user) throw ApiError.badRequest("Invalid verification token")
-  await db.update(usersTable).set({verificationToken:null,isEmailverified:true}).where(eq(usersTable.email,user.email))
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.verificationToken, hashedToken));
+    
+  if (!user) throw ApiError.badRequest("Invalid verification token");
+  
+  if (user.verificationTokenExpiresAt && user.verificationTokenExpiresAt < new Date()) {
+    throw ApiError.badRequest("Verification token has expired");
+  }
+
+  await db
+    .update(usersTable)
+    .set({ verificationToken: null, isEmailverified: true, verificationTokenExpiresAt: null })
+    .where(eq(usersTable.email, user.email));
 
   return ({
     firstName:user.firstName,
@@ -135,4 +149,7 @@ const verifyEmail= async(token:string)=>{
   })
 }
 
+const forgotPassword= async()=>{
+
+}
 export { signUp, signIn, getMe, logout, verifyEmail };

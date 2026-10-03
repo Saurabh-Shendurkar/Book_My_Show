@@ -7,9 +7,10 @@ CREATE TABLE "users" (
 	"is_email_verified" boolean DEFAULT false,
 	"password" varchar(65),
 	"verification_token" text,
-	"access_token" text,
+	"verification_token_expires_at" timestamp,
 	"refresh_token" text,
 	"reset_password_token" text,
+	"reset_password_token_expires_at" timestamp,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp
 );

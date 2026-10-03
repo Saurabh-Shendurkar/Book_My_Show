@@ -34,13 +34,16 @@ const verifyRefreshToken = (token: string) => {
   return jwt.verify(token, process.env.JWT_REFRESH_TOKEN!);
 };
 
-const generateToken = () => {
+const generateToken = (expiresInMinutes: number = 15) => {
   const rawToken = crypto.randomBytes(32).toString("hex");
   const hashedToken = crypto
     .createHash("sha256")
     .update(rawToken)
     .digest("hex");
-  return { rawToken, hashedToken };
+  
+  const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
+  
+  return { rawToken, hashedToken, expiresAt };
 };
 
 export {
