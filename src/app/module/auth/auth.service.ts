@@ -1,5 +1,6 @@
+import "dotenv/config"
 import { db } from "../../common/config/db";
-import { and, eq, lt } from "drizzle-orm";
+import {eq} from "drizzle-orm";
 import type { signUpRequest } from "./dto/signUp.dto";
 import { usersTable } from "./auth.schema";
 import { ApiError } from "../../common/utils/api.error";
@@ -14,12 +15,12 @@ import type { signInRequest } from "./dto/signIn.dto";
 import crypto from "crypto"
 import { sendEmail } from "../../common/utils/send.email";
 import type { forgotPasswordRequest } from "./dto/forgotPassword.dto";
+import type { resetPasswordRequest } from "./dto/resetPassword.dto";
 
 //email templates
-import React, { use } from "react";
+import React from "react";
 import VerifyUserEmail from "./emailTemplate/verifyUser";
 import ResetPasswordEmail from "./emailTemplate/resetPassword";
-import type { resetPasswordRequest } from "./dto/resetPassword.dto";
 
 
 const signUp = async (userData: signUpRequest) => {
