@@ -5,9 +5,12 @@ import { usersTable } from "../auth/auth.schema";
 
 export const moviesTable= pgTable("movies_table",{
     movieId:uuid("movie_id").primaryKey().defaultRandom(),
-    movieName:varchar("movie_name",{length:500}).notNull(),
+    movieName:varchar("movie_name",{length:500}).notNull().unique(),
     movieDuration:varchar("movie_duration",{length:50}).notNull(),
-    priceMultiplier:numeric("price_multiplier",{mode:"number"}).notNull().default(1)
+    priceMultiplier:numeric("price_multiplier",{mode:"number"}).notNull().default(1),
+    isCurrentlyScreening:boolean("is_currently_streaming").default(false),
+    cast:varchar("cast",{length:2000}),
+    directedBy:varchar("directed_by",{length:50})
 })
 
 export const showTimeEnum=pgEnum('show_time',['9am-12pm','12pm-3pm','3pm-6pm','6pm-9pm','9pm-12am'])
@@ -26,7 +29,7 @@ export const showMovieRelation=relations(showsTable,({one})=>({movie:one(moviesT
     references:[moviesTable.movieId]
 })}))
 
-export const seatCategoryEnum= pgEnum("seat_category",["vip",'premium','general'])
+export const seatCategoryEnum= pgEnum("seat_category",["vip",'premium','regular'])
 export const seatsTable= pgTable("seats_table",{
     seatId:uuid("seat_id").primaryKey().defaultRandom(),
     seatNumber:integer("seat_number").unique(),
