@@ -8,9 +8,9 @@ export const moviesTable= pgTable("movies_table",{
     movieName:varchar("movie_name",{length:500}).notNull().unique(),
     movieDuration:varchar("movie_duration",{length:50}).notNull(),
     priceMultiplier:numeric("price_multiplier",{mode:"number"}).notNull().default(1),
-    isCurrentlyScreening:boolean("is_currently_streaming").default(false),
-    cast:varchar("cast",{length:2000}),
-    directedBy:varchar("directed_by",{length:50})
+    isCurrentlyScreening:boolean("is_currently_streaming").default(false).notNull(),
+    cast:varchar("cast",{length:2000}).notNull(),
+    directedBy:varchar("directed_by",{length:50}).notNull()
 })
 
 export const showTimeEnum=pgEnum('show_time',['9am-12pm','12pm-3pm','3pm-6pm','6pm-9pm','9pm-12am'])
