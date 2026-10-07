@@ -1,5 +1,5 @@
 import type{ Request, Response } from "express";
-import { movieDetails, searchMovie } from "./booking.service";
+import { movieDetails, searchMovie, viewUpcomingShows } from "./booking.service";
 import { ApiResponse } from "../../common/utils/api.response";
 
 const searchMoviesHandler=async(req:Request,res:Response)=>{
@@ -8,10 +8,15 @@ const searchMoviesHandler=async(req:Request,res:Response)=>{
     ApiResponse.ok(res,"Found movies with similar names",moviesObj)
 }
 
-const movieDetailshandler= async(req:Request,res:Response)=>{
+const movieDetailsHandler= async(req:Request,res:Response)=>{
     // parseRequest merges params/query/body into req.body after validation
     const movieObj= await movieDetails(req.body) 
     ApiResponse.ok(res,"Fetch Movie Details",movieObj)
 }
 
-export {searchMoviesHandler, movieDetailshandler}
+const viewUpcomingShowsHandler= async(req:Request,res:Response)=>{
+    const showsList= await viewUpcomingShows(req.body)
+    ApiResponse.ok(res,"Fetched the list of upcoming shows for the selected Movie",showsList)
+}
+
+export {searchMoviesHandler, movieDetailsHandler, viewUpcomingShowsHandler}
