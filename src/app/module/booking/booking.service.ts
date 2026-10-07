@@ -2,7 +2,7 @@ import "dotenv/config"
 import { db } from "../../common/config/db"
 import type { searchMovieRequest } from "./dto/searchMovie.dto"
 import { moviesTable, showsTable } from "./booking.schema"
-import { ilike ,eq, and, lt} from "drizzle-orm"
+import { ilike ,eq, and, gte} from "drizzle-orm"
 import type { movieDetailsRequest } from "./dto/movieDetails.dto"
 import { ApiError } from "../../common/utils/api.error"
 import type { viewUpcomingShowsRequest } from "./dto/viewUpcomingShows.dto"
@@ -25,7 +25,7 @@ const movieDetails= async(userRequest:movieDetailsRequest)=>{
 const viewUpcomingShows= async(userRequest:viewUpcomingShowsRequest)=>{
     const movieId= userRequest.movieId
     const currentDate= userRequest.currentDate
-    const showSearchRes=await db.select().from(showsTable).where(and(eq(showsTable.movieId,movieId),lt(showsTable.showDate,currentDate)))
+    const showSearchRes=await db.select().from(showsTable).where(and(eq(showsTable.movieId,movieId),gte(showsTable.showDate,currentDate)))
     if(showSearchRes.length===0) throw ApiError.badRequest("Currently no shows available for this Movie")
     return showSearchRes
 }

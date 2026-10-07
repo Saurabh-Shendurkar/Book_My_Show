@@ -8,7 +8,7 @@ export const moviesTable= pgTable("movies_table",{
     movieName:varchar("movie_name",{length:500}).notNull().unique(),
     movieDuration:varchar("movie_duration",{length:50}).notNull(),
     priceMultiplier:numeric("price_multiplier",{mode:"number"}).notNull().default(1),
-    isCurrentlyScreening:boolean("is_currently_streaming").default(false).notNull(),
+    isCurrentlyScreening:boolean("is_currently_screening").default(false).notNull(),
     cast:varchar("cast",{length:2000}).notNull(),
     directedBy:varchar("directed_by",{length:50}).notNull()
 })
