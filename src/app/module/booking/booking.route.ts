@@ -9,6 +9,6 @@ const router= Router()
 
 router.get("/search-movies",parseRequest(searchMovieDto),searchMoviesHandler)
 router.get("/movie-details/:id",parseRequest(movieDetailsDto),movieDetailsHandler)
-router.get("/view-upcoming-shows/:id",parseRequest(viewUpcomingShowsDto),viewUpcomingShowsHandler)
+router.get("/view-upcoming-shows/:movieId",parseRequest(viewUpcomingShowsDto),viewUpcomingShowsHandler)
 
 export default router

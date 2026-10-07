@@ -11,12 +11,12 @@ const searchMoviesHandler=async(req:Request,res:Response)=>{
 const movieDetailsHandler= async(req:Request,res:Response)=>{
     // parseRequest merges params/query/body into req.body after validation
     const movieObj= await movieDetails(req.body) 
-    ApiResponse.ok(res,"Fetch Movie Details",movieObj)
+    ApiResponse.ok(res,`Fetch ${movieObj.movieName} Details`,movieObj)
 }
 
 const viewUpcomingShowsHandler= async(req:Request,res:Response)=>{
     const showsList= await viewUpcomingShows(req.body)
-    ApiResponse.ok(res,"Fetched the list of upcoming shows for the selected Movie",showsList)
+    ApiResponse.ok(res,`Fetched the list of upcoming shows for the selected Movie`,showsList)
 }
 
 export {searchMoviesHandler, movieDetailsHandler, viewUpcomingShowsHandler}
