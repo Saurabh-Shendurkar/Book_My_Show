@@ -32,9 +32,9 @@ export const showMovieRelation=relations(showsTable,({one})=>({movie:one(moviesT
 export const seatCategoryEnum= pgEnum("seat_category",["vip",'premium','regular'])
 export const seatsTable= pgTable("seats_table",{
     seatId:uuid("seat_id").primaryKey().defaultRandom(),
-    seatNumber:integer("seat_number").unique(),
+    seatNumber:integer("seat_number").unique().notNull(),
     seatType:seatCategoryEnum("seat_type").notNull(),
-    seatPrice:integer("seat_price").generatedAlwaysAs(():SQL=>
+    seatPrice:integer("seat_price").notNull().generatedAlwaysAs(():SQL=>
         sql`CASE
             WHEN ${seatsTable.seatType}='vip' THEN 1000
             WHEN ${seatsTable.seatType}='premium' THEN 600

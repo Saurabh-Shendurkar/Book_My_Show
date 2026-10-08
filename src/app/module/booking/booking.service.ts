@@ -1,11 +1,12 @@
 import "dotenv/config"
 import { db } from "../../common/config/db"
 import type { searchMovieRequest } from "./dto/searchMovie.dto"
-import { moviesTable, showsTable } from "./booking.schema"
+import { bookingsTable, moviesTable, seatsTable, showsTable } from "./booking.schema"
 import { ilike ,eq, and, gte} from "drizzle-orm"
 import type { movieDetailsRequest } from "./dto/movieDetails.dto"
 import { ApiError } from "../../common/utils/api.error"
 import type { viewUpcomingShowsRequest } from "./dto/viewUpcomingShows.dto"
+import type { viewAvailableSeatsRequest } from "./dto/viewAvailableSeats.dto"
 
 const searchMovie=async(userRequest:searchMovieRequest)=>{
     const movieName=userRequest.movieName
@@ -30,4 +31,19 @@ const viewUpcomingShows= async(userRequest:viewUpcomingShowsRequest)=>{
     return showSearchRes
 }
 
-export {searchMovie, movieDetails, viewUpcomingShows}
+const viewAvailableSeats=async(userRequest:viewAvailableSeatsRequest)=>{
+    const showId= userRequest.showId;
+    const bookingTransactions=await db.select().from(bookingsTable)
+    .innerJoin(showsTable,and
+        (eq(bookingsTable.showId,showsTable.showId),
+        eq(showsTable.showId,showId))
+    )
+    const bookedSeatIds=bookingTransactions
+    .filter((booking)=>booking.bookings_table.bookingStatus="Confirmed")
+    .map(booking=>booking.bookings_table.seatId)
+
+    const allTicketIds=await (await db.select().from(seatsTable)).map(seat=>seat.seatId)
+    if(!allTicketIds) throw ApiError.serverFailure("Unable to fetch Seats")
+    return {allTicketIds, bookedSeatIds}
+}
+export {searchMovie, movieDetails, viewUpcomingShows, viewAvailableSeats}
