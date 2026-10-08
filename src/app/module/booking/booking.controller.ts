@@ -20,7 +20,7 @@ const viewUpcomingShowsHandler= async(req:Request,res:Response)=>{
 }
 
 const viewAvailableSeatsHandler= async(req:Request, res:Response)=>{
-    const {allTicketIds, bookedSeatIds}= await viewAvailableSeats(req.body)
-    ApiResponse.ok(res,"Featched the seat Matrix",{allTicketIds,bookedSeatIds})
+    const {showId, seatMatrix}= await viewAvailableSeats(req.body)
+    ApiResponse.ok(res,"Fetched the seat Matrix",{showId, seatMatrix})
 }
 export {searchMoviesHandler, movieDetailsHandler, viewUpcomingShowsHandler, viewAvailableSeatsHandler}

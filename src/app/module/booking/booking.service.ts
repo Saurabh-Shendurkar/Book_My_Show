@@ -33,17 +33,28 @@ const viewUpcomingShows= async(userRequest:viewUpcomingShowsRequest)=>{
 
 const viewAvailableSeats=async(userRequest:viewAvailableSeatsRequest)=>{
     const showId= userRequest.showId;
-    const bookingTransactions=await db.select().from(bookingsTable)
-    .innerJoin(showsTable,and
-        (eq(bookingsTable.showId,showsTable.showId),
-        eq(showsTable.showId,showId))
-    )
-    const bookedSeatIds=bookingTransactions
-    .filter((booking)=>booking.bookings_table.bookingStatus="Confirmed")
-    .map(booking=>booking.bookings_table.seatId)
 
-    const allTicketIds=await (await db.select().from(seatsTable)).map(seat=>seat.seatId)
-    if(!allTicketIds) throw ApiError.serverFailure("Unable to fetch Seats")
-    return {allTicketIds, bookedSeatIds}
+    const bookingTransactions=await db.select().from(bookingsTable)
+    .where(and(
+        eq(bookingsTable.showId,showId),
+        eq(bookingsTable.bookingStatus,"Confirmed")
+    ))
+    const bookedSeatIds=new Set(bookingTransactions.map(booking=>booking.seatId))
+
+    const allTickets=await db.select().from(seatsTable)
+    if(!allTickets) throw ApiError.serverFailure("Unable to fetch Seats")
+    
+    const seatMatrix= allTickets.map((seat)=>({
+        seatId:seat.seatId,
+        seatNumber:seat.seatNumber,
+        seatType:seat.seatType,
+        seatPrice:seat.seatPrice,
+        isBooked:bookedSeatIds.has(seat.seatId)
+    }))
+
+    return {
+        showId,
+        seatMatrix
+    }
 }
 export {searchMovie, movieDetails, viewUpcomingShows, viewAvailableSeats}
