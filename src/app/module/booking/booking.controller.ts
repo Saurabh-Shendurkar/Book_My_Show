@@ -1,5 +1,5 @@
 import type{ Request, Response } from "express";
-import { movieDetails, searchMovie, viewUpcomingShows } from "./booking.service";
+import { movieDetails, searchMovie, viewAvailableSeats, viewUpcomingShows } from "./booking.service";
 import { ApiResponse } from "../../common/utils/api.response";
 
 const searchMoviesHandler=async(req:Request,res:Response)=>{
@@ -19,4 +19,8 @@ const viewUpcomingShowsHandler= async(req:Request,res:Response)=>{
     ApiResponse.ok(res,`Fetched the list of upcoming shows for the selected Movie`,showsList)
 }
 
-export {searchMoviesHandler, movieDetailsHandler, viewUpcomingShowsHandler}
+const viewAvailableSeatsHandler= async(req:Request, res:Response)=>{
+    const {allTicketIds, bookedSeatIds}= await viewAvailableSeats(req.body)
+    ApiResponse.ok(res,"Featched the seat Matrix",{allTicketIds,bookedSeatIds})
+}
+export {searchMoviesHandler, movieDetailsHandler, viewUpcomingShowsHandler, viewAvailableSeatsHandler}
