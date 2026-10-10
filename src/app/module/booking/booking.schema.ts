@@ -1,6 +1,6 @@
 import { SQL, sql } from "drizzle-orm";
 import { relations } from "drizzle-orm/_relations";
-import { boolean, check, date, integer, numeric, pgEnum, pgTable, serial, unique, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, check, date, integer, numeric, pgEnum, pgTable, unique, uuid, varchar } from "drizzle-orm/pg-core";
 import { usersTable } from "../auth/auth.schema";
 
 export const moviesTable= pgTable("movies_table",{
