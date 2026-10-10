@@ -16,6 +16,7 @@ import crypto from "crypto"
 import { sendEmail } from "../../common/utils/send.email";
 import type { forgotPasswordRequest } from "./dto/forgotPassword.dto";
 import type { resetPasswordRequest } from "./dto/resetPassword.dto";
+import type { verifyEmailRequest } from "./dto/verifyEmail.dto";
 
 //email templates
 import React from "react";
@@ -48,7 +49,7 @@ const signUp = async (userData: signUpRequest) => {
   if(!sendMailResult.success) throw ApiError.serverFailure(String(sendMailResult.error))
 
   //insert user into db
-  const [user] = await db
+  const user = await db
     .insert(usersTable)
     .values({
       firstName,
@@ -59,9 +60,7 @@ const signUp = async (userData: signUpRequest) => {
       verificationToken: hashedToken,
       verificationTokenExpiresAt: expiresAt,
     })
-    .returning({ id: usersTable.id });
-
-  return user;
+  return true;
 };
 
 const signIn = async (userData: signInRequest) => {

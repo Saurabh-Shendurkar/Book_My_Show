@@ -25,14 +25,12 @@ const signInHandler = async (req: Request, res: Response) => {
 };
 
 const getMeHandler = async(req:Request, res:Response)=>{
-  //@ts-ignore
-  const user=await getMe(req.user)
+  const user=await getMe((req as any).user)
   ApiResponse.ok(res,"Fetched user details successfully", user)
 }
 
 const logoutHandler=async(req:Request,res:Response)=>{
-  //@ts-ignore
-  const {user,accessToken}=await logout(req.user)
+  const {user,accessToken}=await logout((req as any).user)
   res.clearCookie("refreshToken")
   ApiResponse.ok(res,"Logged out Successfully",{user, accessToken})
 }

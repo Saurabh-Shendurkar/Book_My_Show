@@ -1,0 +1,726 @@
+{
+  "version": "8",
+  "dialect": "postgres",
+  "id": "10124791-f62f-401d-a376-3fcfa3f78f8a",
+  "prevIds": [
+    "c5211a57-f451-45b0-9393-83e8ef8d4562"
+  ],
+  "ddl": [
+    {
+      "values": [
+        "Confirmed",
+        "Pending",
+        "Not Booked",
+        "Canceled"
+      ],
+      "name": "booking_status",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "vip",
+        "premium",
+        "regular"
+      ],
+      "name": "seat_category",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "9am-12pm",
+        "12pm-3pm",
+        "3pm-6pm",
+        "6pm-9pm",
+        "9pm-12am"
+      ],
+      "name": "show_time",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "users",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "bookings_table",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "movies_table",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "seats_table",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "shows_table",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "first_name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "last_name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "varchar(322)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "email",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "varchar(15)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "phone_no",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "is_email_verified",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "varchar(65)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "password",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "verification_token",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "verification_token_expires_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "refresh_token",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "reset_password_token",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "reset_password_token_expires_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "users"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "booking_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "bookings_table"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "show_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "bookings_table"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "seat_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "bookings_table"
+    },
+    {
+      "type": "numeric(5,1)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "final_price",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "bookings_table"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "user_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "bookings_table"
+    },
+    {
+      "type": "booking_status",
+      "typeSchema": "public",
+      "notNull": false,
+      "dimensions": 0,
+      "default": "'Not Booked'",
+      "generated": null,
+      "identity": null,
+      "name": "booking_status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "bookings_table"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "movie_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "movies_table"
+    },
+    {
+      "type": "varchar(500)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "movie_name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "movies_table"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "movie_duration",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "movies_table"
+    },
+    {
+      "type": "numeric",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'1'",
+      "generated": null,
+      "identity": null,
+      "name": "price_multiplier",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "movies_table"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "is_currently_screening",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "movies_table"
+    },
+    {
+      "type": "varchar(2000)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "cast",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "movies_table"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "directed_by",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "movies_table"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "seat_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "seats_table"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "seat_number",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "seats_table"
+    },
+    {
+      "type": "seat_category",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "seat_type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "seats_table"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": {
+        "as": "CASE\n            WHEN \"seats_table\".\"seat_type\"='vip' THEN 1000\n            WHEN \"seats_table\".\"seat_type\"='premium' THEN 600\n            ELSE 300\n            END",
+        "type": "stored"
+      },
+      "identity": null,
+      "name": "seat_price",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "seats_table"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "show_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "shows_table"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "show_date",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "shows_table"
+    },
+    {
+      "type": "show_time",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "show_time",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "shows_table"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "movie_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "shows_table"
+    },
+    {
+      "type": "numeric",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'1'",
+      "generated": null,
+      "identity": null,
+      "name": "price_multiplier",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "shows_table"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "show_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "shows_table",
+      "columnsTo": [
+        "show_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "bookings_table_show_id_shows_table_show_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "bookings_table"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "seat_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "seats_table",
+      "columnsTo": [
+        "seat_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "bookings_table_seat_id_seats_table_seat_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "bookings_table"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "users",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "bookings_table_user_id_users_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "bookings_table"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "movie_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "movies_table",
+      "columnsTo": [
+        "movie_id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "shows_table_movie_id_movies_table_movie_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "shows_table"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "users_pkey",
+      "schema": "public",
+      "table": "users",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "booking_id"
+      ],
+      "nameExplicit": false,
+      "name": "bookings_table_pkey",
+      "schema": "public",
+      "table": "bookings_table",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "movie_id"
+      ],
+      "nameExplicit": false,
+      "name": "movies_table_pkey",
+      "schema": "public",
+      "table": "movies_table",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "seat_id"
+      ],
+      "nameExplicit": false,
+      "name": "seats_table_pkey",
+      "schema": "public",
+      "table": "seats_table",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "show_id"
+      ],
+      "nameExplicit": false,
+      "name": "shows_table_pkey",
+      "schema": "public",
+      "table": "shows_table",
+      "entityType": "pks"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        "show_id",
+        "seat_id"
+      ],
+      "nullsNotDistinct": false,
+      "name": "unique_show_seat_booking",
+      "entityType": "uniques",
+      "schema": "public",
+      "table": "bookings_table"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "email"
+      ],
+      "nullsNotDistinct": false,
+      "name": "users_email_key",
+      "schema": "public",
+      "table": "users",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "phone_no"
+      ],
+      "nullsNotDistinct": false,
+      "name": "users_phone_no_key",
+      "schema": "public",
+      "table": "users",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "movie_name"
+      ],
+      "nullsNotDistinct": false,
+      "name": "movies_table_movie_name_key",
+      "schema": "public",
+      "table": "movies_table",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "seat_number"
+      ],
+      "nullsNotDistinct": false,
+      "name": "seats_table_seat_number_key",
+      "schema": "public",
+      "table": "seats_table",
+      "entityType": "uniques"
+    },
+    {
+      "value": "\"seat_number\"<=30",
+      "name": "seat_number",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "seats_table"
+    }
+  ],
+  "renames": []
+}

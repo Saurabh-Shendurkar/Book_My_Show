@@ -1,0 +1,1 @@
+ALTER TABLE "seats_table" ALTER COLUMN "seat_number" SET NOT NULL;

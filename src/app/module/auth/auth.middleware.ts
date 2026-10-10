@@ -10,17 +10,15 @@ export function authenticateMidleware() {
       throw ApiError.badRequest("Bearer Token must start with Bearer");
     const token = authorization?.split(" ")[1];
     if (!token) throw ApiError.unAuthorized("Missing Token");
-    const user = verifyAccessToken(token);
-    //@ts-ignore
-    req.user = user;
+    const decoded = verifyAccessToken(token);
+    (req as any).user = decoded;
     next();
   };
 }
 
 export function restrictUnAuthenticatedUser() {
   return (req: Request, res: Response, next: NextFunction) => {
-    //@ts-ignore
-    if (!req.user)
+    if (!(req as any).user)
       throw ApiError.forbidden("User Does not have access to do this");
     next();
   };
