@@ -1,6 +1,6 @@
 import { SQL, sql } from "drizzle-orm";
 import { relations } from "drizzle-orm/_relations";
-import { boolean, check, date, integer, numeric, pgEnum, pgTable, unique, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, check, date, integer, numeric, pgEnum, pgTable, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
 import { usersTable } from "../auth/auth.schema";
 
 export const moviesTable= pgTable("movies_table",{
@@ -49,7 +49,7 @@ export const bookingsTable= pgTable("bookings_table",{
     bookingId:uuid("booking_id").primaryKey().defaultRandom(),
     showId:uuid("show_id").notNull().references(()=>showsTable.showId,{onDelete:"cascade"}),
     seatId:uuid("seat_id").notNull().references(()=>seatsTable.seatId),
-    finalPrice:numeric("final_price",{mode:"number",precision:5,scale:1}),
+    finalPrice:numeric("final_price",{mode:"number",precision:6,scale:2}),
     userId:uuid("user_id").references(()=>usersTable.id,{onDelete:"cascade"}),
     bookingStatus:bookingStatusEnum("booking_status").default("Not Booked")
 }, (table) => [
@@ -57,11 +57,13 @@ export const bookingsTable= pgTable("bookings_table",{
 ])
 
 export const actionEnum=pgEnum("action",["Booking","Cancellation"])
-export const transactionStatusEnum=pgEnum("transaction_status_enum",["Successfull","Failure"])
+export const transactionStatusEnum=pgEnum("transaction_status_enum",["Successful","Failure"])
 export const transactionsTable=pgTable("transaction_table",{
     transactionId:uuid("transaction_id").defaultRandom().primaryKey(),
     bookingId:uuid("booking_id").references(()=>bookingsTable.bookingId).notNull(),
     userId:uuid("user_id").references(()=>usersTable.id).notNull(),
     action:actionEnum("action").notNull(),
-    status:transactionStatusEnum("status").notNull()
+    status:transactionStatusEnum("status").notNull(),
+    transactionDateTime:timestamp("transaction_date_time").defaultNow().notNull(),
+    ammount:numeric("ammount",{mode:"number",precision:6,scale:2})
 })
