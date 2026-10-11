@@ -6,6 +6,7 @@ import {
   moviesTable,
   seatsTable,
   showsTable,
+  transactionsTable,
 } from "./booking.schema";
 import { ilike, eq, and, gte } from "drizzle-orm";
 import type { movieDetailsRequest } from "./dto/movieDetails.dto";
@@ -13,6 +14,7 @@ import { ApiError } from "../../common/utils/api.error";
 import type { viewUpcomingShowsRequest } from "./dto/viewUpcomingShows.dto";
 import type { viewAvailableSeatsRequest } from "./dto/viewAvailableSeats.dto";
 import type { selectSeatRequest } from "./dto/selectSeat.dto";
+import type { bookSeatRequest } from "./dto/bookSeat.dto";
 
 const searchMovie = async (userRequest: searchMovieRequest) => {
   const movieName = userRequest.movieName;
@@ -88,7 +90,7 @@ const viewAvailableSeats = async (userRequest: viewAvailableSeatsRequest) => {
   };
 };
 
-const selectSeat = async (userRequest: selectSeatRequest, userId:string) => {
+const selectSeat = async (userRequest: selectSeatRequest,userId:string) => {
   const { seatId, showId} = userRequest;
     return await db.transaction(async (tx) => {
      // Check existing booking for this seat and show
@@ -100,24 +102,30 @@ const selectSeat = async (userRequest: selectSeatRequest, userId:string) => {
          eq(bookingsTable.showId, showId)),
       );
 
-    if (existingBooking?.bookingStatus === "Confirmed")
-      throw ApiError.forbidden(
-        "User cannot try to book an already booked seat",
+    if (existingBooking?.bookingStatus === "Confirmed"){
+      if(existingBooking.userId!==userId)throw ApiError.forbidden(//seat is already confirmed by someone other than user
+        "User cannot try to book an already booked seat by other users",
       );
-    if (existingBooking?.bookingStatus === "Pending")
-      throw ApiError.forbidden(
-        "User cannot try book a ticket that is currently of pending status",
+      else return existingBooking //return seat data for our onw confirmed seat
+    } 
+    else if (existingBooking?.bookingStatus === "Pending"){
+      if(existingBooking.userId!==userId) throw ApiError.forbidden(//seat is under transaction by someone else than the user
+        "User cannot try book a ticket that is currently of pending status, please try again agter 30 seconds",
       );
-      //find the seat price
+      else return existingBooking //return seat data if status was still pending for users seat
+    }else if(existingBooking?.bookingStatus==="Not Booked") return existingBooking // return seat data if it already exists in table but not booked 
+
+    if(!existingBooking){
+    //if seat does not exist in the table
+    //find the seat price as weel as verify if seat exists
     const [seat] = await tx
       .select({ seatPrice: seatsTable.seatPrice })
       .from(seatsTable)
       .where(eq(seatsTable.seatId, seatId));
-
     if(!seat) {
         throw ApiError.notFound("No Matching seat found")
     }
-    //find show and price multiplier 
+    //find show and price multiplier as well as verify show and movie exists
     const [showAndMovieData] = await db
       .select({
         showPriceMultiplier: showsTable.priceMultiplier,
@@ -135,19 +143,42 @@ const selectSeat = async (userRequest: selectSeatRequest, userId:string) => {
     const moviePriceMultiplier=showAndMovieData.moviePriceMultiplier
     const showPriceMultiplier=showAndMovieData.showPriceMultiplier
 
-// find out the final price 
+    // find out the final price 
     const finalPrice=seat.seatPrice*moviePriceMultiplier*showPriceMultiplier
-
-    //final updation or insertion
-    if(existingBooking){
-      const [updatedBooking]=await tx.update(bookingsTable).set({userId,finalPrice,bookingStatus:"Pending"}).where(eq(bookingsTable.bookingId,existingBooking.bookingId)).returning();
-      return updatedBooking
-    }else{
-      const [newBooking]= await tx.insert(bookingsTable).values({
-        seatId,showId,userId,finalPrice,bookingStatus:"Pending"
+    //final insertion if seat data not in bookingsTable
+    const [newBooking]= await tx.insert(bookingsTable).values({
+        seatId,showId,userId:null,finalPrice,bookingStatus:"Not Booked"
       }).returning();
-      return newBooking
+    return newBooking
     }
   });
 };
-export { searchMovie, movieDetails, viewUpcomingShows, viewAvailableSeats, selectSeat};
+
+const bookSeat= async(userRequest:bookSeatRequest,userId:string)=>{
+    return await db.transaction(async(tx)=>{
+      const [selectSeat]=await tx.select().from(bookingsTable).where(
+        and(
+          eq(bookingsTable.bookingId,userRequest.bookingId),
+          eq(bookingsTable.bookingStatus,"Not Booked")
+        )
+      )
+      if(!selectSeat) throw ApiError.notFound("No such available seat found")
+      const pendingTicket=await tx.update(bookingsTable).set({bookingStatus:"Pending",userId}).where(eq(bookingsTable.bookingId,userRequest.bookingId)).returning()
+
+      //perform transaction wait result , if true seat confirmed , else rever to not booked
+        const [transactionStatus]=await tx.insert(transactionsTable).values({
+        bookingId:userRequest.bookingId,
+        userId,
+        action:"Booking",
+        status:"Successfull"
+      }).returning({status:transactionsTable.status})
+      if(!transactionStatus){
+        tx.rollback()
+        throw ApiError.serverFailure("Filed to book the ticket due to :")
+      }else{
+        const [confirmedTikcet]=await tx.update(bookingsTable).set({bookingStatus:"Confirmed"}).returning()
+        return {transactionStatus, confirmedTikcet}
+      }
+    })
+}
+export { searchMovie, movieDetails, viewUpcomingShows, viewAvailableSeats, selectSeat, bookSeat};
