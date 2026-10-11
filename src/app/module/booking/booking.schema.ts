@@ -44,14 +44,24 @@ export const seatsTable= pgTable("seats_table",{
     check('seat_number',sql`${table.seatNumber}<=30`)
 ])
 
-export const bookingStatusEnum=pgEnum("booking_status",["Confirmed","Pending","Not Booked","Canceled"])
+export const bookingStatusEnum=pgEnum("booking_status",["Confirmed","Pending","Not Booked"])
 export const bookingsTable= pgTable("bookings_table",{
     bookingId:uuid("booking_id").primaryKey().defaultRandom(),
     showId:uuid("show_id").notNull().references(()=>showsTable.showId,{onDelete:"cascade"}),
     seatId:uuid("seat_id").notNull().references(()=>seatsTable.seatId),
     finalPrice:numeric("final_price",{mode:"number",precision:5,scale:1}),
-    userId:uuid("user_id").notNull().references(()=>usersTable.id,{onDelete:"cascade"}),
+    userId:uuid("user_id").references(()=>usersTable.id,{onDelete:"cascade"}),
     bookingStatus:bookingStatusEnum("booking_status").default("Not Booked")
 }, (table) => [
     unique("unique_show_seat_booking").on(table.showId, table.seatId)
 ])
+
+export const actionEnum=pgEnum("action",["Booking","Cancellation"])
+export const transactionStatusEnum=pgEnum("transaction_status_enum",["Successfull","Failure"])
+export const transactionsTable=pgTable("transaction_table",{
+    transactionId:uuid("transaction_id").defaultRandom().primaryKey(),
+    bookingId:uuid("booking_id").references(()=>bookingsTable.bookingId).notNull(),
+    userId:uuid("user_id").references(()=>usersTable.id).notNull(),
+    action:actionEnum("action").notNull(),
+    status:transactionStatusEnum("status").notNull()
+})

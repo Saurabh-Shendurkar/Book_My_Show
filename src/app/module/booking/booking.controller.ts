@@ -1,5 +1,5 @@
 import type{ Request, Response } from "express";
-import { movieDetails, searchMovie, selectSeat, viewAvailableSeats, viewUpcomingShows } from "./booking.service";
+import { bookSeat, movieDetails, searchMovie, selectSeat, viewAvailableSeats, viewUpcomingShows } from "./booking.service";
 import { ApiResponse } from "../../common/utils/api.response";
 
 const searchMoviesHandler=async(req:Request,res:Response)=>{
@@ -25,8 +25,12 @@ const viewAvailableSeatsHandler= async(req:Request, res:Response)=>{
 }
 
 const selectSeatHandler= async(req:Request,res:Response)=>{
-    const userId=(req as any).user.id
-    const seatDetails=await selectSeat(req.body,userId)
+    const seatDetails=await selectSeat(req.body,(req as any).user.id)
     ApiResponse.ok(res,"Fetched the selected seat successfully",seatDetails)
 }
-export {searchMoviesHandler, movieDetailsHandler, viewUpcomingShowsHandler, viewAvailableSeatsHandler, selectSeatHandler}
+
+const bookSeatHandler= async(req:Request,res:Response)=>{
+    const bookingDetails= await bookSeat(req.body,(req as any).user.id)
+    ApiResponse.ok(res,"Booked Seat Successfully",bookingDetails)
+}
+export {searchMoviesHandler, movieDetailsHandler, viewUpcomingShowsHandler, viewAvailableSeatsHandler, selectSeatHandler, bookSeatHandler}
