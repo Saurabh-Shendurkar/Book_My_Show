@@ -15,6 +15,7 @@ import type { viewUpcomingShowsRequest } from "./dto/viewUpcomingShows.dto";
 import type { viewAvailableSeatsRequest } from "./dto/viewAvailableSeats.dto";
 import type { selectSeatRequest } from "./dto/selectSeat.dto";
 import type { bookSeatRequest } from "./dto/bookSeat.dto";
+import type { cancelBookingRequest } from "./dto/cancelBooking.dto";
 
 const searchMovie = async (userRequest: searchMovieRequest) => {
   const movieName = userRequest.movieName;
@@ -163,14 +164,16 @@ const bookSeat= async(userRequest:bookSeatRequest,userId:string)=>{
         )
       )
       if(!selectSeat) throw ApiError.notFound("No such available seat found")
-      const pendingTicket=await tx.update(bookingsTable).set({bookingStatus:"Pending",userId}).where(eq(bookingsTable.bookingId,userRequest.bookingId)).returning()
+      const selecBookingId=selectSeat.bookingId
+      const pendingTicket=await tx.update(bookingsTable).set({bookingStatus:"Pending",userId}).where(eq(bookingsTable.bookingId,selecBookingId)).returning()
 
       //perform transaction wait result , if true seat confirmed , else rever to not booked
         const [transactionStatus]=await tx.insert(transactionsTable).values({
-        bookingId:userRequest.bookingId,
+        bookingId:selecBookingId,
         userId,
         action:"Booking",
-        status:"Successfull"
+        status:"Successful",
+        ammount:selectSeat.finalPrice
       }).returning({status:transactionsTable.status})
       if(!transactionStatus){
         tx.rollback()
@@ -181,4 +184,38 @@ const bookSeat= async(userRequest:bookSeatRequest,userId:string)=>{
       }
     })
 }
-export { searchMovie, movieDetails, viewUpcomingShows, viewAvailableSeats, selectSeat, bookSeat};
+
+const cancelBooking=async(userRequest:cancelBookingRequest,userId:string)=>{
+  return await db.transaction(async(tx)=>{
+      const [confirmedSeat]=await tx.select().from(bookingsTable).where(
+        and(
+          eq(bookingsTable.bookingId,userRequest.bookingId),
+          eq(bookingsTable.userId,userId)
+        )
+      )
+      if(!confirmedSeat||confirmedSeat.bookingStatus!=="Confirmed") throw ApiError.notFound("No such confirmed booking found")
+      const confirmedBookingId=confirmedSeat.bookingId
+
+      const [seatCancellation]=await tx.update(bookingsTable).set({bookingStatus:"Not Booked",userId:null}).where(eq(bookingsTable.bookingId,confirmedBookingId)).returning()
+      if(!seatCancellation) {
+        tx.rollback()
+        throw ApiError.serverFailure("Failed to cancel the seat booking")
+      }
+      const finalReturn= seatCancellation.finalPrice!-50
+
+      const [canceledTransaction]=await tx.insert(transactionsTable).values({
+        bookingId:confirmedBookingId,
+        action:"Cancellation",
+        status:"Successful",
+        userId,
+        ammount:finalReturn
+      }).returning()
+
+      if(!canceledTransaction){
+        tx.rollback()
+        ApiError.serverFailure("Failed the transaction for cancelling the booking")
+      }
+      return {seatCancellation,canceledTransaction}
+  })
+}
+export { searchMovie, movieDetails, viewUpcomingShows, viewAvailableSeats, selectSeat, bookSeat, cancelBooking};

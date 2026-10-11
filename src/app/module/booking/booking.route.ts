@@ -1,13 +1,14 @@
 import { Router } from "express";
 import { parseRequest } from "../../common/middleware/parse.middlware";
 import { searchMovieDto } from "./dto/searchMovie.dto";
-import { bookSeatHandler, movieDetailsHandler, searchMoviesHandler, selectSeatHandler, viewAvailableSeatsHandler, viewUpcomingShowsHandler } from "./booking.controller";
+import { bookSeatHandler, cancelBookingHandler, movieDetailsHandler, searchMoviesHandler, selectSeatHandler, viewAvailableSeatsHandler, viewUpcomingShowsHandler } from "./booking.controller";
 import { movieDetailsDto } from "./dto/movieDetails.dto";
 import { viewUpcomingShowsDto } from "./dto/viewUpcomingShows.dto";
 import { viewAvailableSeatsDto } from "./dto/viewAvailableSeats.dto";
 import { selectSeatDto } from "./dto/selectSeat.dto";
 import { restrictUnAuthenticatedUser } from "../auth/auth.middleware";
 import { bookSeatDto } from "./dto/bookSeat.dto";
+import { cancelBookingDto } from "./dto/cancelBooking.dto";
 
 const router= Router()
 
@@ -17,4 +18,5 @@ router.get("/view-upcoming-shows/:movieId",parseRequest(viewUpcomingShowsDto),vi
 router.get("/view-available-seats/:showId",parseRequest(viewAvailableSeatsDto),viewAvailableSeatsHandler)
 router.post("/select-seat",parseRequest(selectSeatDto),restrictUnAuthenticatedUser(),selectSeatHandler)
 router.post("/book-seat",parseRequest(bookSeatDto),restrictUnAuthenticatedUser(),bookSeatHandler)
+router.post("/cancel-booking",parseRequest(cancelBookingDto),restrictUnAuthenticatedUser(),cancelBookingHandler)
 export default router
