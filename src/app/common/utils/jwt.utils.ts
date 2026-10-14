@@ -17,7 +17,9 @@ const createAccessToken = (
 };
 
 const verifyAccessToken = (token: string) => {
-  return jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
+  return jwt.verify(token, process.env.JWT_ACCESS_SECRET as string,{
+    maxAge:process.env.JWT_ACCESS_EXPIRIES_IN
+  });
 };
 
 const createRefreshToken = (
@@ -31,7 +33,9 @@ const createRefreshToken = (
 };
 
 const verifyRefreshToken = (token: string) => {
-  return jwt.verify(token, process.env.JWT_REFRESH_TOKEN!);
+  return jwt.verify(token, process.env.JWT_REFRESH_SECRET as string,{
+    maxAge:process.env.JWT_REFRESH_EXPIRES_IN
+  });
 };
 
 const generateToken = (expiresInMinutes: number = 15) => {
