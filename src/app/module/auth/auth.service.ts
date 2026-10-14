@@ -8,6 +8,7 @@ import {
   createAccessToken,
   createRefreshToken,
   generateToken,
+  verifyRefreshToken,
   type userPayload,
 } from "../../common/utils/jwt.utils";
 import bcrypt from "bcrypt";
@@ -18,14 +19,15 @@ import type { forgotPasswordRequest } from "./dto/forgotPassword.dto";
 import type { resetPasswordRequest } from "./dto/resetPassword.dto";
 import type { verifyEmailRequest } from "./dto/verifyEmail.dto";
 
+
 //email templates
 import React from "react";
 import VerifyUserEmail from "./emailTemplate/verifyUser";
 import ResetPasswordEmail from "./emailTemplate/resetPassword";
 
 
-const signUp = async (userData: signUpRequest) => {
-  const { firstName, lastName, email, phoneNo, password } = userData;
+const signUp = async (userRequest: signUpRequest) => {
+  const { firstName, lastName, email, phoneNo, password } = userRequest;
   const userSearchRes = await db
     .select()
     .from(usersTable)
@@ -63,8 +65,8 @@ const signUp = async (userData: signUpRequest) => {
   return true;
 };
 
-const signIn = async (userData: signInRequest) => {
-  const { email, password } = userData;
+const signIn = async (userRequest: signInRequest) => {
+  const { email, password } = userRequest;
 
   const [user] = await db
     .select()
@@ -95,11 +97,11 @@ const signIn = async (userData: signInRequest) => {
   return { userObj, access_token, refresh_token };
 };
 
-const getMe = async (userData: userPayload) => {
+const getMe = async (userRequest: userPayload) => {
   const [userSearchRes] = await db
     .select()
     .from(usersTable)
-    .where(eq(usersTable.id, userData.id));
+    .where(eq(usersTable.id, userRequest.id));
   if (!userSearchRes) throw ApiError.notFound("User Not Found");
 
   return {
@@ -110,18 +112,18 @@ const getMe = async (userData: userPayload) => {
   };
 };
 
-const logout = async (userData: userPayload) => {
+const logout = async (userRequest: userPayload) => {
   const [userSearchRes] = await db
     .select()
     .from(usersTable)
-    .where(eq(usersTable.id, userData.id));
+    .where(eq(usersTable.id, userRequest.id));
 
   if (!userSearchRes) throw ApiError.notFound("User Not Found");
   //set refresh token in db to null
   await db
     .update(usersTable)
     .set({ refreshToken: null })
-    .where(eq(usersTable.id, userData.id));
+    .where(eq(usersTable.id, userRequest.id));
 
   return { user: {}, accessToken: null};
 };
@@ -153,8 +155,8 @@ const verifyEmail= async(token:string)=>{
   })
 }
 
-const forgotPassword= async(userData:forgotPasswordRequest)=>{
-  const email= userData.email
+const forgotPassword= async(userRequest:forgotPasswordRequest)=>{
+  const email= userRequest.email
   const [user]= await db.select().from(usersTable).where(eq(usersTable.email,email))
   if(!user) throw ApiError.notFound("User Not Found")
   const {rawToken,hashedToken,expiresAt}=generateToken(5)
@@ -174,16 +176,18 @@ const forgotPassword= async(userData:forgotPasswordRequest)=>{
   if(!updatedUser) throw ApiError.serverFailure("Failed to process the request")
 }
 
-const resetPassword= async(userData:resetPasswordRequest)=>{
-  if(!userData.token)throw ApiError.badRequest("Missing token")
-  const hashedToken=crypto.createHash('sha256').update(userData.token).digest('hex')
+const resetPassword= async(userRequest:resetPasswordRequest)=>{
+  if(!userRequest.token)throw ApiError.badRequest("Missing token")
+  const hashedToken=crypto.createHash('sha256').update(userRequest.token).digest('hex')
   const [user]= await db.select().from(usersTable).where(eq(usersTable.resetPasswordToken,hashedToken))
   if(!user) throw ApiError.notFound("Invalid Reset Password Token")
   if(user.resetPasswordTokenExpiresAt&& user.resetPasswordTokenExpiresAt<new Date()){
     throw ApiError.badRequest("Reset Password Token expired")
   }
-  const encryptedPassword = bcrypt.hashSync(userData.password, 12);
-  await db.update(usersTable).set({password:encryptedPassword,resetPasswordToken:null,resetPasswordTokenExpiresAt:null})
+  const encryptedPassword = bcrypt.hashSync(userRequest.password, 12);
+  await db.update(usersTable)
+  .set({password:encryptedPassword,resetPasswordToken:null,resetPasswordTokenExpiresAt:null})
+  .where(eq(usersTable.id,user.id))
 
   return{
     firstName:user.firstName,
@@ -191,4 +195,49 @@ const resetPassword= async(userData:resetPasswordRequest)=>{
     email:user.email
   }
 }
-export { signUp, signIn, getMe, logout, verifyEmail, forgotPassword, resetPassword };
+
+const refreshTokens = async (refreshToken: string) => {
+  // 1. Verify the JWT signature + expiry
+  let decoded: userPayload;
+  try {
+    decoded = verifyRefreshToken(refreshToken) as userPayload;
+  } catch (error) {
+    throw ApiError.unAuthorized("Invalid or expired refresh token");
+  }
+
+  // 2. Find the user and verify the token matches what's stored in DB
+  //    This is critical — if the user logged out, refreshToken is null,
+  //    so a stolen/old token gets rejected here.
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, decoded.id))
+    .limit(1);
+
+  if (!user) throw ApiError.unAuthorized("User no longer exists");
+
+  if (user.refreshToken !== refreshToken) {
+    // Token doesn't match DB — either user logged out, or token was already rotated.
+    // As a safety measure, wipe the stored token to force re-login.
+    await db
+      .update(usersTable)
+      .set({ refreshToken: null })
+      .where(eq(usersTable.id, user.id));
+
+    throw ApiError.unAuthorized("Refresh token has been revoked. Please sign in again.");
+  }
+
+  // 3. Issue new tokens (rotation — old refresh token is now invalid)
+  const newAccessToken = createAccessToken({ id: user.id });
+  const newRefreshToken = createRefreshToken({ id: user.id });
+
+  // 4. Store the new refresh token, invalidating the old one
+  await db
+    .update(usersTable)
+    .set({ refreshToken: newRefreshToken })
+    .where(eq(usersTable.id, user.id));
+
+  return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+};
+
+export { signUp, signIn, getMe, logout, verifyEmail, forgotPassword, resetPassword, refreshTokens };

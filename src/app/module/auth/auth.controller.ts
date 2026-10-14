@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { forgotPassword, getMe, logout, signIn, signUp, verifyEmail, resetPassword } from "./auth.service";
+import { forgotPassword, getMe, logout, signIn, signUp, verifyEmail, resetPassword, refreshTokens } from "./auth.service";
 import { ApiError } from "../../common/utils/api.error";
 import { ApiResponse } from "../../common/utils/api.response";
 import type { verifyEmailRequest } from "./dto/verifyEmail.dto";
@@ -25,12 +25,14 @@ const signInHandler = async (req: Request, res: Response) => {
 };
 
 const getMeHandler = async(req:Request, res:Response)=>{
-  const user=await getMe((req as any).user)
+  if(!req.user) throw ApiError.unAuthorized("User not authenticated")
+  const user=await getMe(req.user)
   ApiResponse.ok(res,"Fetched user details successfully", user)
 }
 
 const logoutHandler=async(req:Request,res:Response)=>{
-  const {user,accessToken}=await logout((req as any).user)
+  if(!req.user) throw ApiError.unAuthorized("User not authenticated")
+  const {user,accessToken}=await logout(req.user)
   res.clearCookie("refreshToken")
   ApiResponse.ok(res,"Logged out Successfully",{user, accessToken})
 }
@@ -51,4 +53,22 @@ const resetPasswordHandler = async (req: Request, res: Response) => {
   ApiResponse.ok(res, "Password reset successfully", user);
 };
 
-export { signUpHandler , signInHandler, getMeHandler, logoutHandler, verficationHandler, forgotPasswordHandler, resetPasswordHandler };
+const refreshHandler = async (req: Request, res: Response) => {
+  const token = req.cookies?.refreshToken;
+  if (!token) throw ApiError.unAuthorized("No refresh token provided");
+
+  const { accessToken, refreshToken } = await refreshTokens(token);
+
+  // Set the new rotated refresh token in the cookie
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    path: "/api/auth/refresh",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  ApiResponse.ok(res, "Tokens refreshed successfully", { accessToken });
+};
+
+export { signUpHandler, signInHandler, getMeHandler, logoutHandler, verficationHandler, forgotPasswordHandler, resetPasswordHandler, refreshHandler };
