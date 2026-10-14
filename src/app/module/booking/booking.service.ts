@@ -165,7 +165,9 @@ const bookSeat= async(userRequest:bookSeatRequest,userId:string)=>{
       )
       if(!selectSeat) throw ApiError.notFound("No such available seat found")
       const selecBookingId=selectSeat.bookingId
-      const pendingTicket=await tx.update(bookingsTable).set({bookingStatus:"Pending",userId}).where(eq(bookingsTable.bookingId,selecBookingId)).returning()
+      const pendingTicket=await tx.update(bookingsTable)
+      .set({bookingStatus:"Pending",userId})
+      .where(eq(bookingsTable.bookingId,selecBookingId)).returning()
 
       //perform transaction wait result , if true seat confirmed , else rever to not booked
         const [transactionStatus]=await tx.insert(transactionsTable).values({
@@ -179,7 +181,10 @@ const bookSeat= async(userRequest:bookSeatRequest,userId:string)=>{
         tx.rollback()
         throw ApiError.serverFailure("Filed to book the ticket due to :")
       }else{
-        const [confirmedTikcet]=await tx.update(bookingsTable).set({bookingStatus:"Confirmed"}).returning()
+        const [confirmedTikcet]=await tx.update(bookingsTable)
+        .set({bookingStatus:"Confirmed"})
+        .where(eq(bookingsTable.bookingId,selecBookingId))
+        .returning()
         return {transactionStatus, confirmedTikcet}
       }
     })

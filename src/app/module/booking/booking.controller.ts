@@ -4,7 +4,7 @@ import { ApiResponse } from "../../common/utils/api.response";
 
 const searchMoviesHandler=async(req:Request,res:Response)=>{
     const moviesObj= await searchMovie(req.body)
-    if(moviesObj===null) ApiResponse.ok(res,"No such movies found",{})
+    if(moviesObj===null) return ApiResponse.ok(res,"No such movies found",{})
     ApiResponse.ok(res,"Found movies with similar names",moviesObj)
 }
 
@@ -25,17 +25,17 @@ const viewAvailableSeatsHandler= async(req:Request, res:Response)=>{
 }
 
 const selectSeatHandler= async(req:Request,res:Response)=>{
-    const seatDetails=await selectSeat(req.body,(req as any).user.id)
+    const seatDetails=await selectSeat(req.body,req.user!.id)
     ApiResponse.ok(res,"Fetched the selected seat successfully",seatDetails)
 }
 
 const bookSeatHandler= async(req:Request,res:Response)=>{
-    const bookingDetails= await bookSeat(req.body,(req as any).user.id)
+    const bookingDetails= await bookSeat(req.body,req.user!.id)
     ApiResponse.ok(res,"Booked Seat Successfully",bookingDetails)
 }
 
 const cancelBookingHandler= async(req:Request, res:Response)=>{
-    const {canceledTransaction,seatCancellation}=await cancelBooking(req.body,(req as any).user.id)
+    const {canceledTransaction,seatCancellation}=await cancelBooking(req.body,req.user!.id)
     ApiResponse.ok(res,"Canceled the booking successfully",{canceledTransaction,seatCancellation})
 }
 export {searchMoviesHandler, movieDetailsHandler, viewUpcomingShowsHandler, viewAvailableSeatsHandler, selectSeatHandler, bookSeatHandler, cancelBookingHandler}
