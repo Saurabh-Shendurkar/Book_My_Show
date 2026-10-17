@@ -4,6 +4,7 @@ import authRouter from "./module/auth/auth.route"
 import cookieParser from "cookie-parser";
 import { authenticateMidleware } from "./module/auth/auth.middleware";
 import bookingRouter from "./module/booking/booking.route"
+import OIDCRouter from "./common/oidc/oidc.router"
 
 export function createApp(){
     const app = express()
@@ -14,6 +15,7 @@ export function createApp(){
     app.use(authenticateMidleware())
 
     //routes
+    app.use("/.well-known",OIDCRouter)
     app.use("/api/auth",authRouter)
     app.use("/api/booking",bookingRouter)
     
