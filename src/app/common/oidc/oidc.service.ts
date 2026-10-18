@@ -1,4 +1,7 @@
 import "dotenv/config";
+import jose from "node-jose"
+import { PUBLIC_KEY } from "../utils/cert";
+import { ApiError } from "../utils/api.error";
 
 const oidcConfig = async () => {
   const domain = (
@@ -38,4 +41,9 @@ const oidcConfig = async () => {
   };
 };
 
-export default oidcConfig;
+const jwks= async()=>{
+  const key = await jose.JWK.asKey(PUBLIC_KEY,"pem")
+  if(!key) throw ApiError.serverFailure("Failed to generate Public key")
+  return key
+}
+export {oidcConfig, jwks};
