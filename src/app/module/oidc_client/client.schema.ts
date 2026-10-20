@@ -1,15 +1,14 @@
 import {pgTable, varchar, boolean,uuid, text,timestamp} from "drizzle-orm/pg-core"
 
 export const applicationsTable= pgTable("applications",{
-    clientId:uuid("client_id").primaryKey().defaultRandom(),
+    clientAppId:uuid("client_id").primaryKey().defaultRandom(),
     appName:varchar("app_name",{length:100}).notNull(),
     userSupportEmail:varchar("user_support_email",{length:322}).notNull(),
     clientEmail:varchar("user_email",{length:322}).notNull(),
     appUrl:varchar("app_url",{length:300}).notNull(),
-    appLogoLink:varchar("app_logo_link",{length:300}),
-    appPivacyPolicyLink:varchar("app_privacy_policy_link",{length:300}).notNull(),
+    appLogoUrl:varchar("app_logo_link",{length:300}),
+    appPivacyPolicyUrl:varchar("app_privacy_policy_link",{length:300}).notNull(),
     redirectUrl:varchar("redirect_url",{length:322}).notNull(),
-    clientSecret:varchar("client_secret",{length:322}).notNull(),
 })
 
 export const clientsTable= pgTable("client",{
