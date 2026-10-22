@@ -5,11 +5,8 @@ import crypto from "crypto";
 export type userPayload = {
   id: string;
 };
-export type clientPayload={
-  email:string
-}
 const createAccessToken = (
-  payload: userPayload|clientPayload,
+  payload: userPayload,
   options: jwt.SignOptions = {
     expiresIn: (process.env.JWT_ACCESS_EXPIRES_IN ||
       "15m") as jwt.SignOptions["expiresIn"],
@@ -25,7 +22,7 @@ const verifyAccessToken = (token: string) => {
 };
 
 const createRefreshToken = (
-  payload: userPayload|clientPayload,
+  payload: userPayload,
   options: jwt.SignOptions = {
     expiresIn: (process.env.REFRESH_ACCESS_EXPIRY ||
       "7d") as jwt.SignOptions["expiresIn"],

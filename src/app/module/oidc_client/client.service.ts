@@ -7,7 +7,7 @@ import type { registerClientRequest } from "./dto/registerClient.dto";
 import { ApiResponse } from "../../common/utils/api.response";
 import { ApiError } from "../../common/utils/api.error";
 import { sendEmail } from "../../common/utils/send.email";
-import { createAccessToken, createRefreshToken, generateToken, type clientPayload } from "../../common/utils/jwt.utils";
+import { createAccessToken, createRefreshToken, generateToken, type userPayload } from "../../common/utils/jwt.utils";
 import VerifyUserEmail from "../auth/emailTemplate/verifyUser";
 import React from "react";
 import crypto from "crypto"
@@ -22,15 +22,6 @@ const registerClient= async(clientRequest:registerClientRequest)=>{
 
     const hashedPassword=bcrypt.hashSync(clientRequest.clientPassword,12)
     const {rawToken,hashedToken,expiresAt}= await generateToken()
-        const sendMailRes=await sendEmail({
-        to: clientRequest.clientEmail,
-        subject: "Welcome! Please verify your Email",
-        template:React.createElement(VerifyUserEmail,{
-            firstName:clientRequest.clientFirstName,
-            verificationLink:`${process.env.Domain||'http://localhost:3000'}/oidc/verifyClient?token=${rawToken}`
-        })
-    })
-    if(!sendMailRes.success) throw ApiError.serverFailure(`Failed to send mail to ${clientRequest.clientEmail}`)
     
     const newClient=await db.insert(clientsTable).values({
         clientEmail:clientRequest.clientEmail,
@@ -42,6 +33,16 @@ const registerClient= async(clientRequest:registerClientRequest)=>{
         verificationTokenExpiresAt:expiresAt
     }).returning()
     if(!newClient) throw ApiError.serverFailure("Failed to register new client.")
+
+    const sendMailRes=await sendEmail({
+        to: clientRequest.clientEmail,
+        subject: "Welcome! Please verify your Email",
+        template:React.createElement(VerifyUserEmail,{
+            firstName:clientRequest.clientFirstName,
+            verificationLink:`${process.env.Domain||'http://localhost:3000'}/oidc/verifyClient?token=${rawToken}`
+        })
+    })
+    if(!sendMailRes.success) throw ApiError.serverFailure(`Failed to send mail to ${clientRequest.clientEmail}`)
     return true
 }
 
@@ -71,36 +72,82 @@ const LoginClient= async(clientRequest:loginClientRequest)=>{
         )
     )
     if(!client) throw ApiError.badRequest("Invalid email or password")
-    const access_token=await createAccessToken({email:client.clientEmail})
-    const refresh_token= await createRefreshToken({email:client.clientEmail})
+    const access_token=await createAccessToken({id:client.clientId})
+    const refresh_token= await createRefreshToken({id:client.clientId})
     const userObj=await db.update(clientsTable).set({refreshToken:refresh_token})
         .where(eq(clientsTable.clientEmail,client.clientEmail))
     if(!userObj) throw ApiError.serverFailure("Failed to add client refresh token")
     return {access_token, refresh_token}
 }
 
-const registerApplication= async(clientRequest:registerClientAppRequest,clientPayload:clientPayload)=>{
-    const clientEmail= clientPayload.email
+const requestVerification= async(ClientPayload:userPayload)=>{
+    const [client]= await db.select().from(clientsTable)
+        .where(
+            and(
+                eq(clientsTable.clientId,ClientPayload.id),
+                eq(clientsTable.isClientVerified,false)
+            )
+        )
+    if(!client) throw ApiError.badRequest("User not found or user already verified")
+    const {rawToken, hashedToken, expiresAt}=generateToken()
+    
+    const updatedClient=await db.update(clientsTable)
+        .set({verificationToken:hashedToken,
+            verificationTokenExpiresAt:expiresAt
+        }).returning()
+    if(!updatedClient) throw ApiError.serverFailure("Failed to generate verification token")
+    
+    const sendMailRes= await sendEmail({
+        to:client.clientEmail,
+        subject:'Please Verify your account vua this email',
+        template:React.createElement(VerifyUserEmail,{
+            firstName:client.clientFirstName,
+            verificationLink:`${process.env.Domain||'http://localhost:3000'}/oidc/verifyClient?token=${rawToken}`
+        })
+    })
+    if(!sendMailRes) throw ApiError.serverFailure("Failed to send verification email to the user")
+    return true
+}
+
+const getClientInfo= async(clientRequest:userPayload)=>{
+    const [client]= await db.select({
+        firstName:clientsTable.clientFirstName,
+        lastName:clientsTable.clientLastName,
+        email:clientsTable.clientEmail,
+        mobileNo:clientsTable.clientMobileNo
+    }).from(clientsTable)
+        .where(
+            and(
+                eq(clientsTable.clientId,clientRequest.id),
+                eq(clientsTable.isClientVerified,true)
+            )
+        )
+    if(!client) throw ApiError.notFound("Invalid token")
+    return client
+}
+
+const registerApplication= async(clientRequest:registerClientAppRequest,clientPayload:userPayload)=>{
+    const clientId= clientPayload.id
     const [client]=await db.select().from(clientsTable)
     .where(
         and(
-            eq(clientsTable.clientEmail,clientEmail),
+            eq(clientsTable.clientId,clientId),
             eq(clientsTable.isClientVerified,true)
     )
     )
     if(!client) throw ApiError.forbidden("Invalid or unverified client")
-    
 
     const newApp=await db.insert(applicationsTable).values({
         appName:clientRequest.appName,
         appPivacyPolicyUrl:clientRequest.appPrivacyPolicyUrl,
         appUrl:clientRequest.appUrl,
         appLogoUrl:clientRequest.appLogoUrl,
-        clientEmail,
+        clientEmail:client.clientEmail,
         userSupportEmail:clientRequest.userSupportEmail,
         redirectUrl:clientRequest.redirectUrl
     }).returning()
     if(!newApp) throw ApiError.serverFailure("Failed to register Application")
     return newApp
 }
-export {registerClient, verifyClient, LoginClient, registerApplication}
+
+export {registerClient, verifyClient, LoginClient, registerApplication, requestVerification, getClientInfo}
