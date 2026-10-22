@@ -19,6 +19,7 @@ export const clientsTable= pgTable("client",{
     clientMobileNo:varchar("client_mobile_no",{length:15}),
     clientPassword:varchar("client_password",{length:65}),
     clientSecret:bytea("client_secret"),
+    isCurrentClientSecretRevealed:boolean("is_current_client_secret").default(false),
     isClientVerified:boolean("is_client_verified").default(false),
     verificationToken:text("verification_token"),
     verificationTokenExpiresAt:timestamp("verification_token_expires_at"),

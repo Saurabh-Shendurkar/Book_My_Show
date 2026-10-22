@@ -13,6 +13,7 @@ import React from "react";
 import crypto from "crypto"
 import type { loginClientRequest } from "./dto/loginClient.dto";
 import type { registerClientAppRequest } from "./dto/registerClientApp.dto";
+import type { generateClientSecretRequest } from "./dto/generateSecret.dto";
 
 const registerClient= async(clientRequest:registerClientRequest)=>{
     if(!clientRequest) throw ApiError.badRequest("Invalid request")
@@ -55,8 +56,11 @@ const verifyClient= async(token:string)=>{
 
     if(!client||client?.verificationTokenExpiresAt && client?.verificationTokenExpiresAt< new Date())
          throw ApiError.badRequest("Invalid or Expired Token")
-    
-    const [verifiedClient]=await db.update(clientsTable).set({isClientVerified:true,verificationToken:null,verificationTokenExpiresAt:null})
+    const [verifiedClient]=await db.update(clientsTable)
+        .set({isClientVerified:true, 
+            verificationToken:null, 
+            verificationTokenExpiresAt:null,
+        })
         .where(eq(clientsTable.clientEmail, client.clientEmail)).returning()
     if(!verifiedClient) throw ApiError.serverFailure("Filed to verify the client")
     return true
@@ -109,7 +113,7 @@ const requestVerification= async(ClientPayload:userPayload)=>{
     return true
 }
 
-const getClientInfo= async(clientRequest:userPayload)=>{
+const getClientInfo= async(clientPayload:userPayload)=>{
     const [client]= await db.select({
         firstName:clientsTable.clientFirstName,
         lastName:clientsTable.clientLastName,
@@ -118,12 +122,31 @@ const getClientInfo= async(clientRequest:userPayload)=>{
     }).from(clientsTable)
         .where(
             and(
-                eq(clientsTable.clientId,clientRequest.id),
+                eq(clientsTable.clientId,clientPayload.id),
                 eq(clientsTable.isClientVerified,true)
             )
         )
     if(!client) throw ApiError.notFound("Invalid token")
     return client
+}
+
+const generateClientSecret= async(clientPayload:userPayload, clientRequest:generateClientSecretRequest)=>{
+    const [client]= await db.select().from(clientsTable)
+        .where(eq(clientsTable.clientId,clientPayload.id))
+    if(!client) throw ApiError.notFound("Invalid request")
+    const hashedPassword= bcrypt.hashSync(clientRequest.clientPassword,12)
+    if(client.clientEmail!==clientRequest.clientEmail&& client.clientPassword!==hashedPassword)
+        throw ApiError.notFound("Invalid Username or password")
+
+    if(client.isCurrentClientSecretRevealed) throw ApiError.badRequest("Secret has already been revealed once")
+    const clientSecret= crypto.randomBytes(32).toHex()
+    const hashedSecret= crypto.createHash('sha256').update(clientSecret).digest()
+    const [updatedClient]=await db.update(clientsTable)
+        .set({clientSecret:hashedSecret,
+            isCurrentClientSecretRevealed:true
+        }).returning()
+    if(!updatedClient) throw ApiError.serverFailure("Fialed to generate client secret")
+    return clientSecret
 }
 
 const registerApplication= async(clientRequest:registerClientAppRequest,clientPayload:userPayload)=>{
