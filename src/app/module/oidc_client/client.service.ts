@@ -14,6 +14,8 @@ import crypto from "crypto"
 import type { loginClientRequest } from "./dto/loginClient.dto";
 import type { registerClientAppRequest } from "./dto/registerClientApp.dto";
 import type { generateClientSecretRequest } from "./dto/generateSecret.dto";
+import type { revokeClientSecretRequest } from "./dto/revokeClientSecret.dto";
+import type { verifyClientSecretRequest } from "./dto/verifyClientSecret.dto";
 
 const registerClient= async(clientRequest:registerClientRequest)=>{
     if(!clientRequest) throw ApiError.badRequest("Invalid request")
@@ -135,20 +137,53 @@ const generateClientSecret= async(clientPayload:userPayload, clientRequest:gener
         .where(eq(clientsTable.clientId,clientPayload.id))
     if(!client) throw ApiError.notFound("Invalid request")
     const hashedPassword= bcrypt.hashSync(clientRequest.clientPassword,12)
-    if(client.clientEmail!==clientRequest.clientEmail&& client.clientPassword!==hashedPassword)
-        throw ApiError.notFound("Invalid Username or password")
-
+    if(client.clientPassword!==hashedPassword)
+        throw ApiError.notFound("Invalid password")
     if(client.isCurrentClientSecretRevealed) throw ApiError.badRequest("Secret has already been revealed once")
-    const clientSecret= crypto.randomBytes(32).toHex()
+
+    const clientSecret= crypto.randomBytes(32).toString("hex")
     const hashedSecret= crypto.createHash('sha256').update(clientSecret).digest()
+
     const [updatedClient]=await db.update(clientsTable)
         .set({clientSecret:hashedSecret,
             isCurrentClientSecretRevealed:true
-        }).returning()
+        })
+        .where(
+            and(
+                eq(clientsTable.clientId,clientPayload.id),
+                eq(clientsTable.clientPassword,hashedPassword)
+            )
+        ).returning()
     if(!updatedClient) throw ApiError.serverFailure("Fialed to generate client secret")
     return clientSecret
 }
 
+const revokeClientSecret= async(clientPayload:userPayload, clientRequest:revokeClientSecretRequest)=>{
+    const hashedPassword= bcrypt.hashSync(clientRequest.clientPassword,12)
+    const [updatedClient]=await db.update(clientsTable)
+        .set({clientSecret:null,
+            isCurrentClientSecretRevealed:false
+        })
+        .where(
+            and(
+                eq(clientsTable.clientId,clientPayload.id),
+                eq(clientsTable.clientPassword,hashedPassword)
+            )
+        ).returning()
+    if(!updatedClient) throw ApiError.badRequest("Invalid password")
+    return true
+}
+
+const verifyClientSecret= async(clientPayload:userPayload,clientRequest:verifyClientSecretRequest)=>{
+    const [client]=await db.select().from(clientsTable)
+    .where(eq(clientsTable.clientId,clientPayload.id))
+    if(!client) throw ApiError.badRequest("Invalid Token")
+    const hashedSecret= crypto.createHash("sha256").update(clientRequest.clientSecret).digest()
+    if(hashedSecret.length!==client.clientSecret?.length) throw ApiError.badRequest("Inavlid client secret")
+    const isValid= crypto.timingSafeEqual(hashedSecret,client.clientSecret)
+    if(!isValid) throw ApiError.badRequest("Invalid client secret")
+    return true
+}
 const registerApplication= async(clientRequest:registerClientAppRequest,clientPayload:userPayload)=>{
     const clientId= clientPayload.id
     const [client]=await db.select().from(clientsTable)
@@ -161,6 +196,7 @@ const registerApplication= async(clientRequest:registerClientAppRequest,clientPa
     if(!client) throw ApiError.forbidden("Invalid or unverified client")
 
     const newApp=await db.insert(applicationsTable).values({
+        clientId,
         appName:clientRequest.appName,
         appPivacyPolicyUrl:clientRequest.appPrivacyPolicyUrl,
         appUrl:clientRequest.appUrl,
@@ -173,4 +209,8 @@ const registerApplication= async(clientRequest:registerClientAppRequest,clientPa
     return newApp
 }
 
-export {registerClient, verifyClient, LoginClient, registerApplication, requestVerification, getClientInfo}
+export {registerClient, verifyClient,
+     LoginClient, registerApplication,
+     requestVerification, getClientInfo,
+      generateClientSecret, revokeClientSecret,
+       verifyClientSecret}

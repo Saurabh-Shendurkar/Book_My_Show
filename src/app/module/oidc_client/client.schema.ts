@@ -2,9 +2,10 @@ import {pgTable, varchar, boolean,uuid, text,timestamp, bytea} from "drizzle-orm
 
 export const applicationsTable= pgTable("applications",{
     clientAppId:uuid("client_id").primaryKey().defaultRandom(),
+    clientId:uuid("client_id").notNull().references(()=>clientsTable.clientId,{onDelete:"cascade"}),
     appName:varchar("app_name",{length:100}).notNull(),
     userSupportEmail:varchar("user_support_email",{length:322}).notNull(),
-    clientEmail:varchar("user_email",{length:322}).notNull(),
+    clientEmail:varchar("user_email",{length:322}).notNull().references(()=>clientsTable.clientEmail,{onUpdate:"cascade"}),
     appUrl:text("app_url").notNull(),
     appLogoUrl:text("app_logo_link"),
     appPivacyPolicyUrl:text("app_privacy_policy_link").notNull(),
