@@ -1,7 +1,7 @@
-import {z} from "zod"
+import { z } from "zod";
 
-export const verifyClientSecretDto= z.object({
-    clientSecret:z.string().trim().max(32)
-})
+export const verifyClientSecretDto = z.object({
+  clientSecret: z.string().trim().min(1).max(128),
+});
 
-export type verifyClientSecretRequest= z.infer<typeof verifyClientSecretDto>
+export type verifyClientSecretRequest = z.infer<typeof verifyClientSecretDto>;
